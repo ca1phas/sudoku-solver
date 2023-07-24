@@ -17,11 +17,15 @@ def main():
     end_time = time.time()
 
     # Check the solution
+    print(solution)
     if valid_solution(answer, solution):
-        time_taken = end_time - start_time
+        print("Correct solution")
+    else:
+        print("Incorrect solution")
 
-        print(solution)
-        print(f"Time take to solve: {time_taken}s")
+    # Display statistics
+    time_taken = end_time - start_time
+    print(f"Time take to solve: {time_taken}s")
 
 
 def get_sudoku():
@@ -44,7 +48,7 @@ def solve_sudoku(sudoku):
 
 
 def valid_solution(answer, solution):
-    ...
+    return np.array_equal(answer, solution)
 
 
 if __name__ == "__main__":
