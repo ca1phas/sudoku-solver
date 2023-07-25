@@ -4,12 +4,19 @@ from typing import Callable
 # Size must be a square number
 SIZE = 9
 
+Square = tuple[int, int]
+Domains = dict[Square, set[int]]
+Constrain = tuple[list[Square], Callable[[tuple[Square, ...], list[int]], bool]]
+Csp = tuple[Domains, list[Constrain]]
+Arc = tuple[Square, Square]
+
 
 def solve_sudoku(sudoku):
     # Get constraint satisfaction problem
     csp = (get_domains(sudoku), get_constraints())
 
     # Maintain arc consistency
+    result = ac3(csp)
 
     # Backtracking
     solution = None
@@ -24,7 +31,7 @@ def get_domains(sudoku):
     domains -> dict[key: tuple(row, col), value: set of available values]
     """
 
-    domains: dict[tuple[int, int], set[int]] = {}
+    domains: Domains = {}
 
     values = set(range(1, SIZE + 1))
     for row in range(SIZE):
@@ -40,9 +47,7 @@ def get_domains(sudoku):
 
 
 def get_constraints():
-    constraints: list[
-        tuple[list[tuple[int, int]], Callable[[tuple[int, int], list[int]], bool]]
-    ] = []
+    constraints: list[Constrain] = []
 
     # Row constraints
     for row in range(SIZE):
@@ -80,10 +85,26 @@ def get_constraints():
     return constraints
 
 
-def ac3(csp, arcs):
+def constrain_to_arcs(constrain: Constrain):
+    arcs: list[Arc] = []
+    sqrs = constrain[0]
+
+    for i, sqrx in enumerate(sqrs):
+        for sqry in sqrs[i + 1 :]:
+            arcs.append((sqrx, sqry))
+
+    return arcs
+
+
+def ac3(csp: Csp, arcs: list[Arc] | None = None):
+    # If no arcs is provided, use the default arcs
+    if not arcs:
+        arcs = []
+        for c in csp[1]:
+            arcs += constrain_to_arcs(c)
+
     while arcs:
-        i, j = arcs[0]
-        arcs = arcs[1:]
+        i, j = arcs.pop(0)
 
         if revise(csp, i, j):
             ...
@@ -93,6 +114,6 @@ def revise(csp, i, j):
     ...
 
 
-def all_diff(vars: tuple[int, int], values: list[int]):
+def all_diff(vars: tuple[Square, ...], values: list[int]):
     # If no. vars == no. unique values, all different
     return len(vars) == len(set(values))
