@@ -16,7 +16,7 @@ def solve_sudoku(sudoku):
     csp = (get_domains(sudoku), get_constraints())
 
     # Maintain arc consistency
-    result = ac3(csp)
+    # result = ac3(csp)
 
     # Backtracking
     solution = None
@@ -64,7 +64,7 @@ def get_constraints():
     if subgrid_size**2 != SIZE:
         raise RuntimeError("SIZE of sudoku must be a square number")
 
-    for subgrid_row in range(SIZE):
+    for subgrid_row in range(subgrid_size):
         # Get row indexes
         row_start = subgrid_row * subgrid_size
         row_end = row_start + subgrid_size
@@ -94,24 +94,6 @@ def constrain_to_arcs(constrain: Constrain):
             arcs.append((sqrx, sqry))
 
     return arcs
-
-
-def ac3(csp: Csp, arcs: list[Arc] | None = None):
-    # If no arcs is provided, use the default arcs
-    if not arcs:
-        arcs = []
-        for c in csp[1]:
-            arcs += constrain_to_arcs(c)
-
-    while arcs:
-        i, j = arcs.pop(0)
-
-        if revise(csp, i, j):
-            ...
-
-
-def revise(csp, i, j):
-    ...
 
 
 def all_diff(vars: tuple[Square, ...], values: list[int]):
