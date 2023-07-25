@@ -1,13 +1,14 @@
 import math
 from typing import Callable
 
+
 # Size must be a square number
 SIZE = 9
 
 Square = tuple[int, int]
 Domains = dict[Square, set[int]]
-Constrain = tuple[list[Square], Callable[[tuple[Square, ...], list[int]], bool]]
-Csp = tuple[Domains, list[Constrain]]
+Constrain = tuple[tuple[Square], Callable[[tuple[Square, ...], list[int]], bool]]
+Csp = tuple[Domains, tuple[Constrain]]
 Arc = tuple[Square, Square]
 
 
@@ -16,7 +17,7 @@ def solve_sudoku(sudoku):
     csp = (get_domains(sudoku), get_constraints())
 
     # Maintain arc consistency
-    # result = ac3(csp)
+    ac3(csp)
 
     # Backtracking
     solution = None
@@ -37,11 +38,7 @@ def get_domains(sudoku):
     for row in range(SIZE):
         for col in range(SIZE):
             # Initialize domain values
-            init_value = sudoku[row, col]
-            if init_value:
-                domains[row, col] = values - {init_value}
-            else:
-                domains[row, col] = values
+            domains[row, col] = values if not sudoku[row, col] else set()
 
     return domains
 
@@ -52,12 +49,12 @@ def get_constraints():
     # Row constraints
     for row in range(SIZE):
         squares = [(row, col) for col in range(SIZE)]
-        constraints.append((squares, all_diff))
+        constraints.append((tuple(squares), all_diff))
 
     # Column constraints
     for col in range(SIZE):
         squares = [(row, col) for row in range(SIZE)]
-        constraints.append((squares, all_diff))
+        constraints.append((tuple(squares), all_diff))
 
     # Square constraints
     subgrid_size = int(math.sqrt(SIZE))
@@ -80,9 +77,9 @@ def get_constraints():
                 for col in range(col_start, col_end):
                     squares.append((row, col))
 
-            constraints.append((squares, all_diff))
+            constraints.append((tuple(squares), all_diff))
 
-    return constraints
+    return tuple(constraints)
 
 
 def constrain_to_arcs(constrain: Constrain):
@@ -94,6 +91,32 @@ def constrain_to_arcs(constrain: Constrain):
             arcs.append((sqrx, sqry))
 
     return arcs
+
+
+def ac3(csp: Csp, arcs: list[Arc] | None = None):
+    if arcs is None:
+        arcs = []
+        for c in csp[1]:
+            arcs += constrain_to_arcs(c)
+
+    while arcs:
+        x, y = arcs.pop(0)
+
+        if revise(csp, x, y):
+            print(True)
+
+
+def revise(csp: Csp, x: Square, y: Square):
+    revised = False
+
+    domains = csp[0]
+    yvals = domains[y]
+    for xval in domains[x]:
+        if xval in yvals and len(yvals) == 1:
+            domains[x].remove(xval)
+            revised = True
+
+    return revised
 
 
 def all_diff(vars: tuple[Square, ...], values: list[int]):
