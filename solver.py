@@ -12,6 +12,7 @@ def main():
     print(sudoku)
 
     # Solve the sudoku
+    print("Solving sudoku")
     start_time = time.time()
     solution = solve_sudoku(sudoku)
     end_time = time.time()
@@ -43,8 +44,46 @@ def get_sudoku():
     return npsudoku, npanswer
 
 
-def solve_sudoku(sudoku):
+def get_domains(sudoku):
+    """
+    Return domain as dict
+
+    key = tuple(row, col), value = set of available values
+    """
+    domains: dict[tuple[int, int], set[int]] = {}
+    values = set(range(1, 10))
+
+    for row in range(9):
+        for col in range(9):
+            init_value = sudoku[row, col]
+
+            if init_value:
+                domains[row, col] = values - {init_value}
+            else:
+                domains[row, col] = values
+
+    return domains
+
+
+def get_constraints():
     ...
+
+
+def all_diff(vars, values):
+    # If no. vars == no. unique values, all different
+    return len(vars) == len(set(values))
+
+
+def solve_sudoku(sudoku):
+    # Get domains and constraints
+    domains = get_domains(sudoku)
+    constraints = get_constraints()
+
+    print(domains)
+
+    solution = None
+
+    return solution
 
 
 def valid_solution(answer, solution):
