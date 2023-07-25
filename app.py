@@ -54,8 +54,8 @@ def get_sudoku():
     answer = [*choice[1]]
 
     # Convert them into an numpy array
-    npsudoku = np.array(sudoku, np.int8).reshape(SIZE, SIZE)
-    npanswer = np.array(answer, np.int8).reshape(SIZE, SIZE)
+    npsudoku = np.array(sudoku).reshape(SIZE, SIZE)
+    npanswer = np.array(answer).reshape(SIZE, SIZE)
 
     # Return the sudoku and the answer
     return npsudoku, npanswer
