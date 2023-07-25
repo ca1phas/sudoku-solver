@@ -16,7 +16,6 @@ def main():
     # Solve the sudoku
     print("Solving sudoku")
     start_time = time.time()
-
     solution = solve_sudoku(sudoku)
     end_time = time.time()
 
