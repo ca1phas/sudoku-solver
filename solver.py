@@ -24,8 +24,6 @@ def solve_sudoku(sudoku):
     if not ac3(csp):
         return
 
-    print(csp[1])
-
     # Backtracking
 
     # Return solution
@@ -150,6 +148,50 @@ def satisfy_constraint(csp: Csp, xvalue: int, y: Variable):
     # 1. The assigned value of y is equal to the x's value
     # 2. There is no values of y that satisfy the x's value
     return False
+
+
+def backtracking_search(csp: Csp):
+    return backtrack(csp, {})
+
+
+def backtrack(csp: Csp, assignment: Variables) -> Variables | None:
+    complete_assignment = len(assignment) == len(csp[0])
+    if complete_assignment:
+        return assignment
+
+    var = select_unassigned_variable(csp, assignment)
+
+    for value in order_domain_values(csp, var, assignment):
+        if consistent_assignment(assignment, value):
+            assignment[var] = value
+            inferences = inference(csp, var, assignment)
+            if inferences:
+                for ivar in inferences:
+                    assignment[ivar] = inferences[ivar]
+                result = backtrack(csp, assignment)
+                if result:
+                    return result
+                for ivar in inferences:
+                    assignment.pop(ivar)
+            assignment.pop(var)
+
+    return None
+
+
+def select_unassigned_variable(csp: Csp, assignment) -> Variable:
+    ...
+
+
+def order_domain_values(csp: Csp, var: Variable, assignment: Variables) -> list[int]:
+    ...
+
+
+def consistent_assignment(assignment: Variables, value: int) -> bool:
+    ...
+
+
+def inference(csp: Csp, var: Variable, assignment: Variables) -> Variables | None:
+    ...
 
 
 def all_diff(vars: list[Variable], values: list[int]):
