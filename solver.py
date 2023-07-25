@@ -1,5 +1,5 @@
-import numpy as np
 from math import sqrt
+from random import choice
 from typing import Callable
 
 
@@ -25,13 +25,14 @@ def solve_sudoku(sudoku):
         return
 
     # Backtracking
+    assignment = backtracking_search(csp)
 
     # Return solution
-    return
+    return assignment
 
 
 def get_sudoku_csp(sudoku) -> Csp:
-    variables: Variables = {}
+    vars: Variables = {}
     domains: Domains = {}
     constraints: Constraints = []
 
@@ -45,7 +46,7 @@ def get_sudoku_csp(sudoku) -> Csp:
             init = sudoku[row, col]
 
             # Initialize variables
-            variables[row, col] = init
+            vars[row, col] = init
 
             # Initialize domains
             domains[row, col] = set() if init else dvalues.copy()
@@ -81,11 +82,11 @@ def get_sudoku_csp(sudoku) -> Csp:
             constraints.append((square_vars, all_diff))
 
     # Return csp
-    return variables, domains, constraints
+    return vars, domains, constraints
 
 
 def ac3(csp: Csp, arcs: Arcs | None = None):
-    variables, domains, constraints = csp
+    vars, domains, constraints = csp
 
     # Initialize all the arcs in csp if arcs is given
     if not arcs:
@@ -93,7 +94,7 @@ def ac3(csp: Csp, arcs: Arcs | None = None):
         for constraint in constraints:
             for x in constraint[0]:
                 # If x does not havea value
-                if not variables[x]:
+                if not vars[x]:
                     for y in constraint[0]:
                         if x != y:
                             arcs.append((x, y))
@@ -120,7 +121,7 @@ def ac3(csp: Csp, arcs: Arcs | None = None):
 
 
 def revise(csp: Csp, x: Variable, y: Variable):
-    _, domains, _ = csp
+    domains = csp[1]
 
     revised = False
     for xvalue in domains[x].copy():
@@ -131,9 +132,9 @@ def revise(csp: Csp, x: Variable, y: Variable):
 
 
 def satisfy_constraint(csp: Csp, xvalue: int, y: Variable):
-    variables, domains, _ = csp
+    vars, domains, _ = csp
 
-    yvalue = variables[y]
+    yvalue = vars[y]
 
     if not yvalue or yvalue != xvalue:
         for yvalue in domains[y]:
@@ -178,12 +179,51 @@ def backtrack(csp: Csp, assignment: Variables) -> Variables | None:
     return None
 
 
-def select_unassigned_variable(csp: Csp, assignment) -> Variable:
-    ...
+def select_unassigned_variable(csp: Csp, assignment: Variables) -> Variable:
+    # Get list of unassigned variable(s)
+    vars, domains, constraints = csp
+    uvars = [var for var in vars if vars[var] == 0 and var not in assignment]
+    if len(uvars) == 1:
+        return uvars.pop()
+
+    # Get MRV(Minimum remaining values) variable(s)
+    mrv = SIZE
+    mrv_vars = []
+    for var in uvars:
+        # Get remainining value
+        rv = len(domains[var])
+        if rv < mrv:
+            mrv = rv
+            mrv_vars = [var]
+        elif rv == mrv:
+            mrv_vars.append(var)
+    if len(mrv_vars) == 1:
+        return mrv_vars[0]
+
+    # Get MDV(Maximum degree values) variable(s)
+    mdv = 0
+    mdv_vars = []
+    for var in mrv_vars:
+        # Get degree value
+        dv = 0
+        for constraint in constraints:
+            if var in constraint[0]:
+                # add to the degree value
+                # the number of unassigned constraining variables minus var itself
+                dv += len(set(uvars).intersection(constraint[0])) - 1
+        if dv > mdv:
+            mdv = dv
+            mdv_vars = [var]
+        elif dv == mdv:
+            mdv_vars.append(var)
+    if len(mdv_vars) == 1:
+        return mdv_vars[0]
+
+    return choice(mdv_vars)
 
 
 def order_domain_values(csp: Csp, var: Variable, assignment: Variables) -> list[int]:
-    ...
+    return []
 
 
 def consistent_assignment(assignment: Variables, value: int) -> bool:
