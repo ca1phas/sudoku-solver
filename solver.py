@@ -1,6 +1,6 @@
 import numpy as np
 from math import sqrt
-from typing import Callable, Any
+from typing import Callable
 
 
 # Size must be a square number
@@ -12,6 +12,8 @@ Domains = dict[Variable, set[int]]
 Constraint = tuple[list[Variable], Callable[[list[Variable], list[int]], bool]]
 Constraints = list[Constraint]
 Csp = tuple[Variables, Domains, Constraints]
+Arc = tuple[Variable, Variable]
+Arcs = list[Arc]
 
 
 def solve_sudoku(sudoku):
@@ -19,6 +21,10 @@ def solve_sudoku(sudoku):
     csp = get_sudoku_csp(sudoku)
 
     # Maintain arc consistency
+    if not ac3(csp):
+        return
+
+    print(csp[1])
 
     # Backtracking
 
@@ -44,7 +50,7 @@ def get_sudoku_csp(sudoku) -> Csp:
             variables[row, col] = init
 
             # Initialize domains
-            domains[row, col] = set() if init else dvalues
+            domains[row, col] = set() if init else dvalues.copy()
 
             # Get row variable
             row_vars.append((row, col))
@@ -78,6 +84,72 @@ def get_sudoku_csp(sudoku) -> Csp:
 
     # Return csp
     return variables, domains, constraints
+
+
+def ac3(csp: Csp, arcs: Arcs | None = None):
+    variables, domains, constraints = csp
+
+    # Initialize all the arcs in csp if arcs is given
+    if not arcs:
+        arcs = []
+        for constraint in constraints:
+            for x in constraint[0]:
+                # If x does not havea value
+                if not variables[x]:
+                    for y in constraint[0]:
+                        if x != y:
+                            arcs.append((x, y))
+
+    while arcs:
+        x, y = arcs.pop(0)
+
+        if revise(csp, x, y):
+            # If domain of x is empty after revision,
+            # Return False as there is no solution
+            if not domains[x]:
+                return False
+            # If domain of x is not empty after revision
+            # Re/check all arcs with x bar except (x, k ) & (y, x)
+            for constraint in constraints:
+                vars = constraint[0]
+                if x in vars:
+                    for k in vars:
+                        if k != x and k != y:
+                            arcs.append((k, x))
+
+    # Return True as arc consistency is maintained
+    return True
+
+
+def revise(csp: Csp, x: Variable, y: Variable):
+    _, domains, _ = csp
+
+    revised = False
+    for xvalue in domains[x].copy():
+        if not satisfy_constraint(csp, xvalue, y):
+            domains[x].remove(xvalue)
+            revised = True
+    return revised
+
+
+def satisfy_constraint(csp: Csp, xvalue: int, y: Variable):
+    variables, domains, _ = csp
+
+    yvalue = variables[y]
+
+    if not yvalue or yvalue != xvalue:
+        for yvalue in domains[y]:
+            if yvalue != xvalue:
+                break
+
+        # There is a value of y that is different from xvalue
+        # Return True as the constraint is satisfied
+        return True
+
+    # Return False if
+    # 1. The assigned value of y is equal to the x's value
+    # 2. There is no values of y that satisfy the x's value
+    return False
 
 
 def all_diff(vars: list[Variable], values: list[int]):
