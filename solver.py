@@ -1,20 +1,12 @@
 from math import sqrt
 from copy import deepcopy
 from random import choice
-from typing import Callable
+
 
 # Size must be a square number
 SIZE = 9
 
-Variable = tuple[int, int]
-Variables = dict[Variable, int]
-Domains = dict[Variable, set[int]]
-Constraint = tuple[tuple[Variable], Callable[[list[Variable], list[int]], bool]]
-Constraints = list[Constraint]
-Csp = tuple[Variables, Domains, Constraints]
-Arc = tuple[Variable, Variable]
-Arcs = set[Arc]
-
+from csp import Variable, Variables, Domains, Constraints, Csp
 from mac import ac3, get_arcs
 
 
@@ -66,10 +58,12 @@ def get_sudoku_csp(sudoku) -> Csp:
 
             # Get column constraint if it is the first row
             if not row:
-                constraints.append((tuple([(r, col) for r in range(SIZE)]), all_diff))
+                constraints.append(
+                    (tuple([(r, col) for r in range(SIZE)]), sudoku_cfunc)
+                )
 
         # Add row constraint
-        constraints.append((tuple(row_vars), all_diff))
+        constraints.append((tuple(row_vars), sudoku_cfunc))
 
     # Initialize constraints(square)
     square_size = int(sqrt(SIZE))
@@ -89,10 +83,19 @@ def get_sudoku_csp(sudoku) -> Csp:
                 for c in range(start_col, end_col)
             ]
 
-            constraints.append((tuple(square_vars), all_diff))
+            constraints.append((tuple(square_vars), sudoku_cfunc))
 
     # Return csp
     return vars, domains, constraints
+
+
+def sudoku_cfunc(vars: list[Variable], values: list[int]):
+    """
+    Sudoku constrain function
+
+    Ensure all `values` of `vars` are unique
+    """
+    return len(vars) == len(set(values))
 
 
 def backtracking_search(csp: Csp):
@@ -228,7 +231,7 @@ def consistent_assignment(
 
 
 def inference(csp: Csp, var: Variable, assignment: Variables):
-    vars, domains, constriants = csp
+    vars, domains, _ = csp
 
     # Update csp after value assignment
     # new_domains: Domains = deepcopy(domains)
@@ -240,7 +243,3 @@ def inference(csp: Csp, var: Variable, assignment: Variables):
 
     # Maintain arc consistency after value assignment
     return ac3(csp, get_arcs(csp, y=var))
-
-
-def all_diff(vars: list[Variable], values: list[int]):
-    return len(vars) == len(set(values))

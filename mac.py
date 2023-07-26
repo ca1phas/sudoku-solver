@@ -1,5 +1,5 @@
 from typing import Optional
-from solver import Csp, Variable, Arcs, Constraint
+from csp import Csp, Variable, Arcs, Constraint
 
 
 def ac3(csp: Csp, arcs: Arcs | None = None):
