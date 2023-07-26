@@ -205,22 +205,23 @@ def consistent_assignment(
 
     # Ensure `value` of the `var` satisfies all constraints
     for constraint in constraints:
-        if var in constraint:
-            # Get the list of variables in a constraint
-            cvars = constraint[0]
-
-            # Get list of values of the variables
-            values = [value]
+        cvars = constraint[0]
+        if var in cvars:
+            # Get list of assigned variables and their values
+            avars = [var]
+            avalues = [value]
             for cvar in cvars:
                 cvar_value = vars[cvar]
                 if cvar_value:
-                    values.append(cvar_value)
+                    avalues.append(cvar_value)
+                    avars.append(cvar)
                 elif cvar in assignment:
-                    values.append(assignment[cvar])
+                    avalues.append(assignment[cvar])
+                    avars.append(cvar)
 
             # Ensure `value` of the `var` satisfies the constraint function
             cfunc = constraint[1]
-            if not cfunc(cvars, values):
+            if not cfunc(avars, avalues):
                 return False
 
     return True
@@ -242,4 +243,4 @@ def inference(csp: Csp, var: Variable, assignment: Variables):
 
 
 def all_diff(vars: list[Variable], values: list[int]):
-    return len(vars) == len(tuple(values))
+    return len(vars) == len(set(values))
