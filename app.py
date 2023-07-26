@@ -8,40 +8,19 @@ from solver import solve_sudoku, SIZE
 
 def main():
     # Get a sudoku
-    # print("Getting the sudoku...")
-    # sudoku, answer = get_sudoku()
-    # print("Sudoku: ")
-    # print(sudoku)
-    sudoku = [
-        [0, 0, 0, 0, 3, 6, 9, 4, 5],
-        [0, 0, 0, 7, 9, 1, 6, 8, 2],
-        [0, 0, 0, 5, 4, 8, 1, 7, 3],
-        [2, 6, 5, 8, 1, 7, 3, 9, 4],
-        [3, 7, 8, 4, 2, 9, 5, 1, 6],
-        [9, 1, 4, 3, 6, 5, 8, 2, 7],
-        [4, 5, 1, 9, 7, 3, 2, 6, 8],
-        [8, 2, 9, 6, 5, 4, 7, 3, 1],
-        [7, 3, 6, 1, 8, 2, 4, 5, 9],
-    ]
-    answer = [
-        [1, 8, 7, 2, 3, 6, 9, 4, 5],
-        [5, 4, 3, 7, 9, 1, 6, 8, 2],
-        [6, 9, 2, 5, 4, 8, 1, 7, 3],
-        [2, 6, 5, 8, 1, 7, 3, 9, 4],
-        [3, 7, 8, 4, 2, 9, 5, 1, 6],
-        [9, 1, 4, 3, 6, 5, 8, 2, 7],
-        [4, 5, 1, 9, 7, 3, 2, 6, 8],
-        [8, 2, 9, 6, 5, 4, 7, 3, 1],
-        [7, 3, 6, 1, 8, 2, 4, 5, 9],
-    ]
+    print("Getting the sudoku...")
+    sudoku, answer = get_sudoku()
+    print("Sudoku: ")
+    print(sudoku)
 
     # Solve the sudoku
     print("Solving sudoku")
     start_time = time.time()
-    solution = solve_sudoku(np.array(sudoku))
+    solution = solve_sudoku(sudoku)
     end_time = time.time()
 
     # Check the solution
+    print("Solution: ")
     print(solution)
     if valid_solution(answer, solution):
         print("Correct solution")
@@ -61,8 +40,8 @@ def get_sudoku():
     answer = [*choice[1]]
 
     # Convert them into an numpy array
-    npsudoku = np.array(sudoku).reshape(SIZE, SIZE)
-    npanswer = np.array(answer).reshape(SIZE, SIZE)
+    npsudoku = np.array(sudoku, dtype=np.int8).reshape(SIZE, SIZE)
+    npanswer = np.array(answer, dtype=np.int8).reshape(SIZE, SIZE)
 
     # Return the sudoku and the answer
     return npsudoku, npanswer
