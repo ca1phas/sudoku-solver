@@ -256,7 +256,9 @@ def get_neighbours(csp: Csp, var: Variable):
 
 
 def consistent_assignment(assignment: Variables, value: int) -> bool:
-    ...
+    uvalues = set(assignment.values())
+    uvalues.add(value)
+    return len(uvalues) == len(assignment)
 
 
 def inference(csp: Csp, var: Variable, assignment: Variables) -> Variables | None:
