@@ -29,8 +29,16 @@ def solve_sudoku(sudoku):
     # Backtracking
     assignment = backtracking_search(csp)
 
+    # Ensure there is a solution
+    if not assignment:
+        raise RuntimeError("Cannot solve sudoku")
+
     # Return solution
-    return assignment
+    solution = deepcopy(sudoku)
+    for var in assignment:
+        row, col = var
+        solution[row][col] = assignment[var]
+    return solution
 
 
 def get_sudoku_csp(sudoku) -> Csp:
@@ -92,33 +100,31 @@ def backtracking_search(csp: Csp):
 
 
 def backtrack(csp: Csp, assignment: Variables) -> Variables | None:
-    complete_assignment = len(assignment) == len(csp[0])
-    if complete_assignment:
+    uvar = select_unassigned_variable(csp, assignment)
+
+    # Assignment complete if there is no unassigned variable
+    if not uvar:
         return assignment
 
-    var = select_unassigned_variable(csp, assignment)
+    for value in order_domain_values(csp, uvar, assignment):
+        if consistent_assignment(csp, assignment, uvar, value):
+            assignment[uvar] = value
 
-    for value in order_domain_values(csp, var, assignment):
-        if consistent_assignment(csp, assignment, var, value):
-            assignment[var] = value
-            inferences = inference(csp, var, assignment)
-            if inferences:
-                # for ivar in inferences:
-                #     assignment[ivar] = inferences[ivar]
-                result = backtrack(csp, assignment)
-                if result:
-                    return result
-                # for ivar in inferences:
-                #     assignment.pop(ivar)
-            assignment.pop(var)
+            result = backtrack(csp, assignment)
+            if result:
+                return result
+
+            assignment.pop(uvar)
 
     return None
 
 
-def select_unassigned_variable(csp: Csp, assignment: Variables) -> Variable:
+def select_unassigned_variable(csp: Csp, assignment: Variables) -> Variable | None:
     # Get list of unassigned variable(s)
     domains = csp[1]
     uvars = get_unassigned_variables(csp, assignment)
+    if not len(uvars):
+        return
     if len(uvars) == 1:
         return uvars.pop()
 
