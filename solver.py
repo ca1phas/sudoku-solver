@@ -181,8 +181,8 @@ def backtrack(csp: Csp, assignment: Variables) -> Variables | None:
 
 def select_unassigned_variable(csp: Csp, assignment: Variables) -> Variable:
     # Get list of unassigned variable(s)
-    vars, domains, constraints = csp
-    uvars = [var for var in vars if vars[var] == 0 and var not in assignment]
+    domains = csp[1]
+    uvars = get_unassigned_variables(csp, assignment)
     if len(uvars) == 1:
         return uvars.pop()
 
@@ -205,12 +205,8 @@ def select_unassigned_variable(csp: Csp, assignment: Variables) -> Variable:
     mdv_vars = []
     for var in mrv_vars:
         # Get degree value
-        dv = 0
-        for constraint in constraints:
-            if var in constraint[0]:
-                # add to the degree value
-                # the number of unassigned constraining variables minus var itself
-                dv += len(set(uvars).intersection(constraint[0])) - 1
+        neighbours = get_neighbours(csp, var)
+        dv = len(neighbours.intersection(uvars)) - 1  # -1 for var itself
         if dv > mdv:
             mdv = dv
             mdv_vars = [var]
@@ -223,7 +219,40 @@ def select_unassigned_variable(csp: Csp, assignment: Variables) -> Variable:
 
 
 def order_domain_values(csp: Csp, var: Variable, assignment: Variables) -> list[int]:
-    return []
+    domains = csp[1]
+    cvalues: list[tuple[int, int]] = []  # tuple[dvalue, cvalue]
+
+    for dvalue in domains[var]:
+        # Get unassigned neighbours
+        uvars = get_unassigned_variables(csp, assignment)
+        neighbours = get_neighbours(csp, var)
+        uneighbours = neighbours.intersection(uvars)
+
+        # Get constraining value
+        cvalue = 0
+        for uneighour in uneighbours:
+            if dvalue in domains[uneighour]:
+                cvalue += 1
+
+        cvalues.append((dvalue, cvalue))
+
+    svalues = [dvalue for dvalue, _ in sorted(cvalues, key=lambda cvalue: cvalue[1])]
+    return svalues
+
+
+def get_unassigned_variables(csp: Csp, assignment: Variables):
+    vars = csp[0]
+    return [var for var in vars if vars[var] == 0 and var not in assignment]
+
+
+def get_neighbours(csp: Csp, var: Variable):
+    neighbours: set[Variable] = set()
+    for cvars, _ in csp[2]:
+        if var in cvars:
+            neighbours = neighbours.union(set(cvars))
+    neighbours.discard(var)
+
+    return neighbours
 
 
 def consistent_assignment(assignment: Variables, value: int) -> bool:
