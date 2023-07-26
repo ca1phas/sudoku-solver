@@ -1,4 +1,5 @@
 from math import sqrt
+from copy import deepcopy
 from random import choice
 from typing import Callable
 
@@ -14,7 +15,7 @@ Constraint = tuple[list[Variable], Callable[[list[Variable], list[int]], bool]]
 Constraints = list[Constraint]
 Csp = tuple[Variables, Domains, Constraints]
 Arc = tuple[Variable, Variable]
-Arcs = list[Arc]
+Arcs = set[Arc]
 
 
 def solve_sudoku(sudoku):
@@ -94,7 +95,7 @@ def ac3(csp: Csp, arcs: Arcs | None = None):
         arcs = get_arcs(csp)
 
     while arcs:
-        x, y = arcs.pop(0)
+        x, y = arcs.pop()
 
         if revise(csp, x, y):
             # If domain of x is empty after revision,
@@ -102,13 +103,13 @@ def ac3(csp: Csp, arcs: Arcs | None = None):
             if not domains[x]:
                 return False
             # If domain of x is not empty after revision
-            # Re/check all arcs with x bar except (x, k ) & (y, x)
+            # Re/check all arcs with x bar except (x, k) & (y, x)
             for constraint in constraints:
                 vars = constraint[0]
                 if x in vars:
                     for k in vars:
                         if k != x and k != y:
-                            arcs.append((k, x))
+                            arcs.add((k, x))
 
     # Return True as arc consistency is maintained
     return True
@@ -117,16 +118,17 @@ def ac3(csp: Csp, arcs: Arcs | None = None):
 def get_arcs(csp: Csp, var: Variable | None = None):
     vars, _, constraints = csp
 
-    arcs: Arcs = []
+    arcs: Arcs = set()
     for constraint in constraints:
-        if var and var in constraint[0]:
-            arcs += var_constraint_to_arcs(constraint, var)
+        if var:
+            if var in constraint[0]:
+                arcs.update(var_constraint_to_arcs(constraint, var))
         else:
             # If no variable is provided, get all arcs
             for x in constraint[0]:
                 # If x does not have a value
                 if not vars[x]:
-                    arcs += var_constraint_to_arcs(constraint, x)
+                    arcs.update(var_constraint_to_arcs(constraint, x))
 
     return arcs
 
@@ -135,10 +137,10 @@ def var_constraint_to_arcs(constraint: Constraint, var: Variable):
     """
     Return all arcs of a variable `var` given a constraint
     """
-    arcs: Arcs = []
+    arcs: Arcs = set()
     for x in constraint[0]:
         if var != x:
-            arcs.append((var, x))
+            arcs.add((var, x))
     return arcs
 
 
@@ -147,13 +149,13 @@ def revise(csp: Csp, x: Variable, y: Variable):
 
     revised = False
     for xvalue in domains[x].copy():
-        if not satisfy_constraint(csp, xvalue, y):
+        if not satisfy_arc_constraint(csp, xvalue, y):
             domains[x].remove(xvalue)
             revised = True
     return revised
 
 
-def satisfy_constraint(csp: Csp, xvalue: int, y: Variable):
+def satisfy_arc_constraint(csp: Csp, xvalue: int, y: Variable):
     vars, domains, _ = csp
 
     yvalue = vars[y]
@@ -185,7 +187,6 @@ def backtrack(csp: Csp, assignment: Variables) -> Variables | None:
     var = select_unassigned_variable(csp, assignment)
 
     for value in order_domain_values(csp, var, assignment):
-        print(var, value)
         if consistent_assignment(csp, assignment, var, value):
             assignment[var] = value
             inferences = inference(csp, var, assignment)
@@ -307,7 +308,17 @@ def consistent_assignment(
 
 
 def inference(csp: Csp, var: Variable, assignment: Variables) -> Variables | None:
-    ac3(csp, get_arcs(csp, var))
+    variables, domains, constriants = csp
+
+    # Update domains and variables
+    new_domains: Domains = deepcopy(domains)
+    new_vars: Variables = deepcopy(variables)
+    for var in assignment:
+        new_domains[var] = set()
+        new_vars[var] = assignment[var]
+
+    new_csp: Csp = (new_vars, new_domains, constriants)
+    ac3(new_csp, get_arcs(new_csp, var))
 
 
 def all_diff(vars: list[Variable], values: list[int]):
