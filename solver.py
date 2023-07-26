@@ -9,7 +9,7 @@ SIZE = 9
 Variable = tuple[int, int]
 Variables = dict[Variable, int]
 Domains = dict[Variable, set[int]]
-Constraint = tuple[list[Variable], Callable[[list[Variable], list[int]], bool]]
+Constraint = tuple[tuple[Variable], Callable[[list[Variable], list[int]], bool]]
 Constraints = list[Constraint]
 Csp = tuple[Variables, Domains, Constraints]
 Arc = tuple[Variable, Variable]
@@ -66,10 +66,10 @@ def get_sudoku_csp(sudoku) -> Csp:
 
             # Get column constraint if it is the first row
             if not row:
-                constraints.append(([(r, col) for r in range(SIZE)], all_diff))
+                constraints.append((tuple([(r, col) for r in range(SIZE)]), all_diff))
 
         # Add row constraint
-        constraints.append((row_vars, all_diff))
+        constraints.append((tuple(row_vars), all_diff))
 
     # Initialize constraints(square)
     square_size = int(sqrt(SIZE))
@@ -89,7 +89,7 @@ def get_sudoku_csp(sudoku) -> Csp:
                 for c in range(start_col, end_col)
             ]
 
-            constraints.append((square_vars, all_diff))
+            constraints.append((tuple(square_vars), all_diff))
 
     # Return csp
     return vars, domains, constraints
