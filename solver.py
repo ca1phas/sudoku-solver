@@ -2,6 +2,7 @@ from math import sqrt
 from random import choice
 from typing import Callable
 
+from pprint import pprint
 
 # Size must be a square number
 SIZE = 9
@@ -90,14 +91,7 @@ def ac3(csp: Csp, arcs: Arcs | None = None):
 
     # Initialize all the arcs in csp if arcs is given
     if not arcs:
-        arcs = []
-        for constraint in constraints:
-            for x in constraint[0]:
-                # If x does not havea value
-                if not vars[x]:
-                    for y in constraint[0]:
-                        if x != y:
-                            arcs.append((x, y))
+        arcs = get_arcs(csp)
 
     while arcs:
         x, y = arcs.pop(0)
@@ -118,6 +112,34 @@ def ac3(csp: Csp, arcs: Arcs | None = None):
 
     # Return True as arc consistency is maintained
     return True
+
+
+def get_arcs(csp: Csp, var: Variable | None = None):
+    vars, _, constraints = csp
+
+    arcs: Arcs = []
+    for constraint in constraints:
+        if var and var in constraint[0]:
+            arcs += var_constraint_to_arcs(constraint, var)
+        else:
+            # If no variable is provided, get all arcs
+            for x in constraint[0]:
+                # If x does not have a value
+                if not vars[x]:
+                    arcs += var_constraint_to_arcs(constraint, x)
+
+    return arcs
+
+
+def var_constraint_to_arcs(constraint: Constraint, var: Variable):
+    """
+    Return all arcs of a variable `var` given a constraint
+    """
+    arcs: Arcs = []
+    for x in constraint[0]:
+        if var != x:
+            arcs.append((var, x))
+    return arcs
 
 
 def revise(csp: Csp, x: Variable, y: Variable):
@@ -163,7 +185,8 @@ def backtrack(csp: Csp, assignment: Variables) -> Variables | None:
     var = select_unassigned_variable(csp, assignment)
 
     for value in order_domain_values(csp, var, assignment):
-        if consistent_assignment(assignment, value):
+        print(var, value)
+        if consistent_assignment(csp, assignment, var, value):
             assignment[var] = value
             inferences = inference(csp, var, assignment)
             if inferences:
@@ -255,14 +278,36 @@ def get_neighbours(csp: Csp, var: Variable):
     return neighbours
 
 
-def consistent_assignment(assignment: Variables, value: int) -> bool:
-    uvalues = set(assignment.values())
-    uvalues.add(value)
-    return len(uvalues) == len(assignment)
+def consistent_assignment(
+    csp: Csp, assignment: Variables, var: Variable, value: int
+) -> bool:
+    vars, _, constraints = csp
+
+    # Ensure `value` of the `var` satisfies all constraints
+    for constraint in constraints:
+        if var in constraint:
+            # Get the list of variables in a constraint
+            cvars = constraint[0]
+
+            # Get list of values of the variables
+            values = [value]
+            for cvar in cvars:
+                cvar_value = vars[cvar]
+                if cvar_value:
+                    values.append(cvar_value)
+                elif cvar in assignment:
+                    values.append(assignment[cvar])
+
+            # Ensure `value` of the `var` satisfies the constraint function
+            cfunc = constraint[1]
+            if not cfunc(cvars, values):
+                return False
+
+    return True
 
 
 def inference(csp: Csp, var: Variable, assignment: Variables) -> Variables | None:
-    ...
+    ac3(csp, get_arcs(csp, var))
 
 
 def all_diff(vars: list[Variable], values: list[int]):
