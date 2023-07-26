@@ -142,12 +142,13 @@ def select_unassigned_variable(csp: Csp, assignment: Variables) -> Variable:
     for var in mrv_vars:
         # Get degree value
         neighbours = get_neighbours(csp, var)
-        dv = len(neighbours.intersection(uvars)) - 1  # -1 for var itself
+        dv = len(neighbours.intersection(uvars))
         if dv > mdv:
             mdv = dv
             mdv_vars = [var]
         elif dv == mdv:
             mdv_vars.append(var)
+
     if len(mdv_vars) == 1:
         return mdv_vars[0]
 
