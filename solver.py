@@ -1,7 +1,7 @@
 from math import sqrt
 from copy import deepcopy
 from random import choice
-from typing import Callable
+from typing import Callable, Optional
 
 from pprint import pprint
 
@@ -115,32 +115,80 @@ def ac3(csp: Csp, arcs: Arcs | None = None):
     return True
 
 
-def get_arcs(csp: Csp, var: Variable | None = None):
+def get_arcs(csp: Csp, x: Optional[Variable] = None, y: Optional[Variable] = None):
+    """
+    Return all arcs given all constraints and
+
+    arc = (a, b) where a and b are `Variable`
+
+    `is_x` = if `True` and `x` is provided, include arcs where a is `x` only
+
+    `is_y` = if `True` and `y` is provided, include arcs wehre b is `y` only
+
+    `is_xy` = if `True` and `x` and `y` are proived,
+    return arcs with the single arc (`x`, `y`) if `x` and `y` in the constraint
+    """
+
     vars, _, constraints = csp
 
     arcs: Arcs = set()
     for constraint in constraints:
-        if var:
-            if var in constraint[0]:
-                arcs.update(var_constraint_to_arcs(constraint, var))
+        cvars = constraint[0]
+        if x or y:
+            if x in cvars or y in cvars:
+                arcs.update(constraint_to_arcs(constraint, x=x, y=y))
         else:
             # If no variable is provided, get all arcs
-            for x in constraint[0]:
-                # If x does not have a value
-                if not vars[x]:
-                    arcs.update(var_constraint_to_arcs(constraint, x))
+            for cvar in cvars:
+                # If cvar does not have a value
+                if not vars[cvar]:
+                    arcs.update(constraint_to_arcs(constraint, x=cvar))
 
     return arcs
 
 
-def var_constraint_to_arcs(constraint: Constraint, var: Variable):
+def constraint_to_arcs(
+    constraint: Constraint,
+    x: Optional[Variable] = None,
+    y: Optional[Variable] = None,
+    is_x: Optional[bool] = True,
+    is_y: Optional[bool] = True,
+    is_xy: Optional[bool] = True,
+):
     """
-    Return all arcs of a variable `var` given a constraint
+    Return all arcs given a constraint
+
+    arc = (a, b) where a and b are `Variable`
+
+    `is_x` = if `True` and `x` is provided, include arcs where a is `x` only
+
+    `is_y` = if `True` and `y` is provided, include arcs wehre b is `y` only
+
+    `is_xy` = if `True` and `x` and `y` are proived,
+    return arcs with the single arc (`x`, `y`) if `x` and `y` in the constraint
     """
+
     arcs: Arcs = set()
-    for x in constraint[0]:
-        if var != x:
-            arcs.add((var, x))
+    cvars = constraint[0]
+
+    only_want_xy = x and y and is_xy
+    if only_want_xy:
+        if x in cvars and y in cvars:
+            arcs.add((x, y))
+        return arcs
+
+    only_want_x = x and is_x
+    only_want_y = y and is_y
+    for i, cx in enumerate(cvars):
+        if only_want_x and cx != x:
+            continue
+
+        for cy in cvars[i + 1 :]:
+            if only_want_y and cy != y:
+                continue
+
+            arcs.add((cx, cy))
+
     return arcs
 
 
@@ -156,6 +204,16 @@ def revise(csp: Csp, x: Variable, y: Variable):
 
 
 def satisfy_arc_constraint(csp: Csp, xvalue: int, y: Variable):
+    """
+    Return `True` if there is a domain value of `y`
+    that can satisfy the constraints if `x` is `xvalue`
+    arc = (`x`, `y`)
+
+    Constraints:
+    1. If `y` has a value, it does not equal to `xvalue`
+    2. Else, `y` has a domain value(s) that does not equal to `xvalue`
+    """
+
     vars, domains, _ = csp
 
     yvalue = vars[y]
@@ -164,14 +222,8 @@ def satisfy_arc_constraint(csp: Csp, xvalue: int, y: Variable):
         for yvalue in domains[y]:
             if yvalue != xvalue:
                 break
-
-        # There is a value of y that is different from xvalue
-        # Return True as the constraint is satisfied
         return True
 
-    # Return False if
-    # 1. The assigned value of y is equal to the x's value
-    # 2. There is no values of y that satisfy the x's value
     return False
 
 
@@ -318,7 +370,7 @@ def inference(csp: Csp, var: Variable, assignment: Variables) -> Variables | Non
         new_vars[var] = assignment[var]
 
     new_csp: Csp = (new_vars, new_domains, constriants)
-    ac3(new_csp, get_arcs(new_csp, var))
+    ac3(new_csp, get_arcs(new_csp, y=var))
 
 
 def all_diff(vars: list[Variable], values: list[int]):
