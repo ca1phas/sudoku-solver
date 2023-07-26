@@ -7,6 +7,17 @@ from solver import solve_sudoku, SIZE
 
 
 def main():
+    # df = pd.read_csv("./data/sudoku.csv")
+    # choices = df.values.tolist()
+
+    # for sudoku, answer in choices:
+    #     # Convert them into an numpy array
+    #     npsudoku = np.array([*sudoku], dtype=np.int8).reshape(SIZE, SIZE)
+    #     npanswer = np.array([*answer], dtype=np.int8).reshape(SIZE, SIZE)
+
+    #     if not valid_solution(npanswer, solve_sudoku(npsudoku)):
+    #         raise RuntimeError("Invalid solution")
+
     # Get a sudoku
     print("Getting the sudoku...")
     sudoku, answer = get_sudoku()
@@ -34,7 +45,7 @@ def main():
 
 def get_sudoku():
     # Get a random sudoku and its answer
-    df = pd.read_csv("sudoku.csv")
+    df = pd.read_csv("./data/sudoku.csv")
     choice = random.choice(df.values.tolist())
     sudoku = [*choice[0]]
     answer = [*choice[1]]
