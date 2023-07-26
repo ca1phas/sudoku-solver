@@ -105,9 +105,9 @@ def ac3(csp: Csp, arcs: Arcs | None = None):
             # If domain of x is not empty after revision
             # Re/check all arcs with x bar except (x, k) & (y, x)
             for constraint in constraints:
-                vars = constraint[0]
-                if x in vars:
-                    for k in vars:
+                cvars = constraint[0]
+                if x in cvars:
+                    for k in cvars:
                         if k != x and k != y:
                             arcs.add((k, x))
 
@@ -117,32 +117,27 @@ def ac3(csp: Csp, arcs: Arcs | None = None):
 
 def get_arcs(csp: Csp, x: Optional[Variable] = None, y: Optional[Variable] = None):
     """
-    Return all arcs given all constraints and
+    Return all arcs given the `csp`, `x` and `y`
 
     arc = (a, b) where a and b are `Variable`
 
-    `is_x` = if `True` and `x` is provided, include arcs where a is `x` only
+    if `x` is provided, return arcs where a is `x` only
 
-    `is_y` = if `True` and `y` is provided, include arcs wehre b is `y` only
+    if `y` is provided, return arcs wehre b is `y` only
 
-    `is_xy` = if `True` and `x` and `y` are proived,
-    return arcs with the single arc (`x`, `y`) if `x` and `y` in the constraint
+    if `x` and `y` are proived, return arcs with (`x`, `y`) only
     """
 
-    vars, _, constraints = csp
+    constraints = csp[2]
 
     arcs: Arcs = set()
     for constraint in constraints:
-        cvars = constraint[0]
         if x or y:
+            cvars = constraint[0]
             if x in cvars or y in cvars:
                 arcs.update(constraint_to_arcs(constraint, x=x, y=y))
         else:
-            # If no variable is provided, get all arcs
-            for cvar in cvars:
-                # If cvar does not have a value
-                if not vars[cvar]:
-                    arcs.update(constraint_to_arcs(constraint, x=cvar))
+            arcs.update(constraint_to_arcs(constraint))
 
     return arcs
 
@@ -151,43 +146,37 @@ def constraint_to_arcs(
     constraint: Constraint,
     x: Optional[Variable] = None,
     y: Optional[Variable] = None,
-    is_x: Optional[bool] = True,
-    is_y: Optional[bool] = True,
-    is_xy: Optional[bool] = True,
 ):
     """
     Return all arcs given a constraint
 
     arc = (a, b) where a and b are `Variable`
 
-    `is_x` = if `True` and `x` is provided, include arcs where a is `x` only
+    if `x` is provided, return arcs where a is `x` only
 
-    `is_y` = if `True` and `y` is provided, include arcs wehre b is `y` only
+    if `y` is provided, return arcs wehre b is `y` only
 
-    `is_xy` = if `True` and `x` and `y` are proived,
-    return arcs with the single arc (`x`, `y`) if `x` and `y` in the constraint
+    if `x` and `y` are proived, return arcs with (`x`, `y`) only
     """
 
     arcs: Arcs = set()
     cvars = constraint[0]
 
-    only_want_xy = x and y and is_xy
-    if only_want_xy:
+    if x and y:
         if x in cvars and y in cvars:
             arcs.add((x, y))
         return arcs
 
-    only_want_x = x and is_x
-    only_want_y = y and is_y
     for i, cx in enumerate(cvars):
-        if only_want_x and cx != x:
+        if x and cx != x:
             continue
 
         for cy in cvars[i + 1 :]:
-            if only_want_y and cy != y:
+            if y and cy != y:
                 continue
 
             arcs.add((cx, cy))
+            arcs.add((cy, cx))
 
     return arcs
 
@@ -243,13 +232,13 @@ def backtrack(csp: Csp, assignment: Variables) -> Variables | None:
             assignment[var] = value
             inferences = inference(csp, var, assignment)
             if inferences:
-                for ivar in inferences:
-                    assignment[ivar] = inferences[ivar]
+                # for ivar in inferences:
+                #     assignment[ivar] = inferences[ivar]
                 result = backtrack(csp, assignment)
                 if result:
                     return result
-                for ivar in inferences:
-                    assignment.pop(ivar)
+                # for ivar in inferences:
+                #     assignment.pop(ivar)
             assignment.pop(var)
 
     return None
@@ -359,18 +348,19 @@ def consistent_assignment(
     return True
 
 
-def inference(csp: Csp, var: Variable, assignment: Variables) -> Variables | None:
-    variables, domains, constriants = csp
+def inference(csp: Csp, var: Variable, assignment: Variables):
+    vars, domains, constriants = csp
 
-    # Update domains and variables
-    new_domains: Domains = deepcopy(domains)
-    new_vars: Variables = deepcopy(variables)
+    # Update csp after value assignment
+    # new_domains: Domains = deepcopy(domains)
+    # new_vars: Variables = deepcopy(variables)
     for var in assignment:
-        new_domains[var] = set()
-        new_vars[var] = assignment[var]
+        domains[var] = set()
+        vars[var] = assignment[var]
+    # new_csp: Csp = (new_vars, new_domains, constriants)
 
-    new_csp: Csp = (new_vars, new_domains, constriants)
-    ac3(new_csp, get_arcs(new_csp, y=var))
+    # Maintain arc consistency after value assignment
+    return ac3(csp, get_arcs(csp, y=var))
 
 
 def all_diff(vars: list[Variable], values: list[int]):
