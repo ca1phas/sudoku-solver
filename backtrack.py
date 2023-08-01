@@ -15,15 +15,15 @@ def _backtrack(csp: CSP, assignments: Assignments):
     for value in _order_domain_values(csp, var, assignments):
         if csp.consistent_assignment(new_assignments={**assignments, var: value}):
             assignments[var] = value
-            inferences = _inference(csp, var, assignments)
-            if inferences != None:
-                _add_inferences(csp, inferences)
-                result = _backtrack(csp, assignments)
-                if result != None:
-                    return result
-                _remove_inferences(csp, inferences)
-
+            # inferences = _inference(csp, var, assignments)
+            # if inferences != None:
+            #     _add_inferences(csp, inferences)
+            result = _backtrack(csp, assignments)
+            if result != None:
+                return result
+            #     _remove_inferences(csp, inferences)
             assignments.pop(var)
+    return None
 
 
 def _select_unassigned_variable(csp: CSP, assignments: Assignments):
@@ -69,11 +69,9 @@ def _get_unassigned_variables(csp: CSP, assignments: Assignments):
 
 
 def _order_domain_values(csp: CSP, var: Variable, assignments: Assignments):
-    uvars = _get_unassigned_variables(csp, assignments)
-    uneighbours = uvars.union(csp.get_neighbours(var))
-    dvalues = csp.domains[var]
+    # TODO
 
-    return dvalues
+    return csp.domains[var]
 
 
 def _inference(csp: CSP, var: Variable, assignments: Assignments) -> dict:

@@ -12,16 +12,21 @@ SIZE = 9
 
 
 def main():
-    # df = pd.read_csv("./data/sudoku.csv")
-    # choices = df.values.tolist()
+    df = pd.read_csv("./data/sudoku.csv")
+    choices = df.values.tolist()
 
-    # for sudoku, answer in choices:
-    #     # Convert them into an numpy array
-    #     npsudoku = np.array([*sudoku], dtype=np.int8).reshape(SIZE, SIZE)
-    #     npanswer = np.array([*answer], dtype=np.int8).reshape(SIZE, SIZE)
+    i = 0
+    for sudoku, answer in choices:
+        print(f"SAMPLE [{i}]")
 
-    #     if not valid_solution(npanswer, solve_sudoku(npsudoku)):
-    #         raise RuntimeError("Invalid solution")
+        # Convert them into an numpy array
+        npsudoku = np.array([*sudoku], dtype=np.int8).reshape(SIZE, SIZE)
+        npanswer = np.array([*answer], dtype=np.int8).reshape(SIZE, SIZE)
+
+        if not valid_solution(npanswer, solve_sudoku(npsudoku)):
+            raise RuntimeError("Invalid solution")
+
+        i += 1
 
     # Get a sudoku
     print("Getting the sudoku...")
@@ -75,7 +80,23 @@ def solve_sudoku(sudoku):
     )
 
     # Return solution by backtracking search
-    backtracking_search(csp)
+    assignments = backtracking_search(csp)
+
+    if assignments == None:
+        return sudoku
+
+    solution = []
+    for row in range(SIZE):
+        rvalues = []
+
+        for col in range(SIZE):
+            var = row, col
+            rvalues.append(
+                assignments[var] if var in assignments else csp.assignments[var]
+            )
+
+        solution.append(rvalues)
+    return solution
 
 
 def get_sudoku_csp(sudoku):
