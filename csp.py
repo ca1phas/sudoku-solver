@@ -2,8 +2,9 @@ from typing import TypeVar, Callable
 
 T = TypeVar("T")
 
-Variables = set[T]
-Domains = dict[T, set[T]]
+Domain = set[T]
+Variables = frozenset[T]
+Domains = dict[T, Domain]
 Relation = Callable[[list[T], list[T]], bool] | set[tuple[T, ...]]
 Constraint = tuple[Variables, Relation]
 Constraints = set[Constraint]
@@ -11,7 +12,10 @@ Constraints = set[Constraint]
 
 class CSP:
     def __init__(
-        self, vars: Variables, domains: Domains, constraints: Constraints
+        self,
+        vars: Variables,
+        domains: Domains,
+        constraints: Constraints,
     ) -> None:
         self._vars = vars
         self._domains = domains
