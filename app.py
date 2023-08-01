@@ -6,6 +6,7 @@ from math import sqrt
 
 from csp import CSP, Domains, Assignments, Constraints, Domain
 from ac3 import Arcs, ac3
+from backtrack import backtracking_search
 
 SIZE = 9
 
@@ -74,6 +75,7 @@ def solve_sudoku(sudoku):
     )
 
     # Return solution by backtracking search
+    backtracking_search(csp)
 
 
 def get_sudoku_csp(sudoku):

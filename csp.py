@@ -47,13 +47,13 @@ class CSP:
 
     def consistent_assignment(self, new_assignments: Assignments = {}):
         for vars, rel in self.constraints:
-            values = {}
+            assignments = {}
             for var in vars:
                 if var in new_assignments:
-                    values[var] = new_assignments[var]
+                    assignments[var] = new_assignments[var]
                 elif self.assignments[var] != None:
-                    values[var] = self.assignments[var]
-            if not rel(values):
+                    assignments[var] = self.assignments[var]
+            if not rel(assignments):
                 return False
         return True
 
