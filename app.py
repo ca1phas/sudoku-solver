@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 from math import sqrt
 
-from csp import CSP, Variables, Domains, Constraints
+from csp import CSP, Domains, Assignments, Constraints, Domain
+from ac3 import Arcs, ac3
 
 SIZE = 9
 
@@ -62,23 +63,27 @@ def get_sudoku():
 
 
 def solve_sudoku(sudoku):
-    # Setup CSP for the sudoku
+    # Setup CSP Solver for the sudoku
     csp = get_sudoku_csp(sudoku)
 
     # Maintain arc consistency
-    csp
+    ac3(
+        csp=csp,
+        arcs=get_suduko_arcs(csp),
+        arc_func=satisfy_arc_constraint,
+    )
 
     # Return solution by backtracking search
 
 
 def get_sudoku_csp(sudoku):
-    def all_diff(vars: list[tuple[int, int]], values: list[int]):
-        return len(vars) == len(set(values))
+    def all_diff(assignment: dict):
+        return len(assignment.keys()) == len(set(assignment.values()))
 
     vars = set()
-    assignments = {}
-    domains: Domains = {}
     constraints: Constraints = set()
+    domains: Domains = {}
+    assignments: Assignments = {}
 
     size_range = range(SIZE)
     for row in size_range:
@@ -97,12 +102,12 @@ def get_sudoku_csp(sudoku):
             assignments[var] = sudoku[var] or None
 
             # Set domain
-            domains[var] = set() if sudoku[var] else {i for i in range(SIZE)}
+            domains[var] = set() if sudoku[var] else {(i + 1) for i in range(SIZE)}
 
             # Add column constraint
             if row == 0:
-                cvars = frozenset((r, col) for r in size_range)
-                constraints.add((cvars, all_diff))
+                cvars = {(r, col) for r in size_range}
+                constraints.add((frozenset(cvars), all_diff))
 
         # Add row constraint
         constraints.add((frozenset(rvars), all_diff))
@@ -127,10 +132,32 @@ def get_sudoku_csp(sudoku):
             constraints.add((frozenset(svars), all_diff))
 
     return CSP(
-        vars=frozenset(vars),
+        vars=vars,
         domains=domains,
+        assignments=assignments,
         constraints=constraints,
     )
+
+
+def get_suduko_arcs(csp: CSP):
+    arcs: Arcs = set()
+    for vars, _ in csp.constraints:
+        for var in vars:
+            for var2 in vars:
+                if var != var2:
+                    arcs.add((var, var2))
+    return arcs
+
+
+def satisfy_arc_constraint(xvalue: int, yvalues: Domain):
+    """
+    Return `True` if there are two unique values i.e.
+    `x` and `y` have different values
+    """
+    for yvalue in yvalues:
+        if yvalue != xvalue:
+            return True
+    return False
 
 
 def valid_solution(answer, solution):

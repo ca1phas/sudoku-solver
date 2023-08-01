@@ -1,14 +1,15 @@
-from typing import TypeVar, Callable
+from typing import TypeAlias, TypeVar, Callable
 
 T = TypeVar("T")
 
 Domain = set[T]
-Variables = frozenset[T]
-Assignments = dict[T, T]
-Domains = dict[T, Domain]
+Variable: TypeAlias = T
+Variables = set[Variable]
+Assignments = dict[Variable, T]
+Domains = dict[Variable, Domain]
 Relation = Callable[[Assignments], bool]
-Constraint = tuple[Variables, Relation]
-Constraints = frozenset[Constraint]
+Constraint = tuple[frozenset[Variable], Relation]
+Constraints = set[Constraint]
 
 
 class CSP:
@@ -40,6 +41,10 @@ class CSP:
     def assignments(self):
         return self._assignments
 
+    def remove_domain_value(self, var, value):
+        if var in self.domains:
+            self._domains[var].remove(value)
+
     def consistent_assignment(self, new_assignments: Assignments = {}):
         for vars, rel in self.constraints:
             values = {}
@@ -60,3 +65,11 @@ class CSP:
                 continue
             return False
         return True
+
+    def get_neighbours(self, var: Variable):
+        neighbours = set()
+        for vars, _ in self.constraints:
+            if var in vars:
+                neighbours = neighbours.union(vars)
+        neighbours.discard(var)
+        return neighbours
