@@ -1,11 +1,30 @@
-from typing import Callable
+from typing import TypeVar, Callable
 
-Variable = tuple[int, int]
-Variables = dict[Variable, int]
-Domains = dict[Variable, set[int]]
-Relation = Callable[[list[Variable], list[int]], bool]
-Constraint = tuple[tuple[Variable], Relation]
-Constraints = list[Constraint]
-Csp = tuple[Variables, Domains, Constraints]
-Arc = tuple[Variable, Variable]
-Arcs = set[Arc]
+T = TypeVar("T")
+
+Variables = set[T]
+Domains = dict[T, set[T]]
+Relation = Callable[[list[T], list[T]], bool] | set[tuple[T, ...]]
+Constraint = tuple[Variables, Relation]
+Constraints = set[Constraint]
+
+
+class CSP:
+    def __init__(
+        self, vars: Variables, domains: Domains, constraints: Constraints
+    ) -> None:
+        self._vars = vars
+        self._domains = domains
+        self._constraints = constraints
+
+    @property
+    def vars(self):
+        return self._vars
+
+    @property
+    def domains(self):
+        return self._domains
+
+    @property
+    def constraints(self):
+        return self._constraints
