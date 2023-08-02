@@ -1,5 +1,7 @@
+from copy import deepcopy
 from random import choice
 from csp import CSP, Assignments, Variable, Domains
+from ac3 import ac3, Arcs
 
 
 def backtracking_search(csp: CSP):
@@ -15,13 +17,11 @@ def _backtrack(csp: CSP, assignments: Assignments):
     for value in _order_domain_values(csp, var, assignments):
         if csp.consistent_assignment(new_assignments={**assignments, var: value}):
             assignments[var] = value
-            # inferences = _inference(csp, var, assignments)
+            # inferences = _infer(csp, var, assignments)
             # if inferences != None:
-            #     _add_inferences(csp, inferences)
             result = _backtrack(csp, assignments)
             if result != None:
                 return result
-            #     _remove_inferences(csp, inferences)
             assignments.pop(var)
     return None
 
@@ -69,21 +69,31 @@ def _get_unassigned_variables(csp: CSP, assignments: Assignments):
 
 
 def _order_domain_values(csp: CSP, var: Variable, assignments: Assignments):
-    # TODO
+    if not csp.lcv_hfunc:
+        raise RuntimeError("Cannot order domain values without csp.lcv_hfunc")
 
-    return csp.domains[var]
+    dvalues = {}
+    uneighbours = _get_unassigned_variables(csp, assignments).union(
+        csp.get_neighbours(var)
+    )
+    for dvalue in csp.domains[var]:
+        dvalues[dvalue] = csp.lcv_hfunc(dvalue, uneighbours, csp.domains)
+    return sorted(dvalues.keys(), key=lambda k: dvalues[k])
 
 
-def _inference(csp: CSP, var: Variable, assignments: Assignments) -> dict:
-    ...
-
-
-def _add_inferences(csp: CSP, inferences: Domains):
+def _infer(csp: CSP, var: Variable, assignments: Assignments):
     """
-    Return previous domains of changed variables after adding inferences to the csp
+    Return the new domains of unassigned variables if there are new inferences
+
+    Return `None` if there is no new inference
     """
-    ...
 
+    old_csp = deepcopy(csp)
+    uvars = _get_unassigned_variables(csp, assignments)
+    uneighbours = uvars.intersection(csp.get_neighbours(var))
+    arcs: Arcs = {(n, var) for n in uneighbours}
 
-def _remove_inferences(csp: CSP, inferences: Domains):
-    ...
+    if not ac3(csp, arcs):
+        csp = old_csp
+        return False
+    return True

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from math import sqrt
 
-from csp import CSP, Domains, Assignments, Constraints, Domain
+from csp import CSP, Domains, Assignments, Constraints, Domain, Variables
 from ac3 import Arcs, ac3
 from backtrack import backtracking_search
 
@@ -15,9 +15,9 @@ def main():
     df = pd.read_csv("./data/sudoku.csv")
     choices = df.values.tolist()
 
-    i = 0
-    for sudoku, answer in choices:
-        print(f"SAMPLE [{i}]")
+    start_time = time.time()
+    for i in range(1000):
+        sudoku, answer = choices[i]
 
         # Convert them into an numpy array
         npsudoku = np.array([*sudoku], dtype=np.int8).reshape(SIZE, SIZE)
@@ -25,28 +25,27 @@ def main():
 
         if not valid_solution(npanswer, solve_sudoku(npsudoku)):
             raise RuntimeError("Invalid solution")
-
-        i += 1
-
-    # Get a sudoku
-    print("Getting the sudoku...")
-    sudoku, answer = get_sudoku()
-    print("Sudoku: ")
-    print(sudoku)
-
-    # Solve the sudoku
-    print("Solving sudoku")
-    start_time = time.time()
-    solution = solve_sudoku(sudoku)
     end_time = time.time()
 
+    # Get a sudoku
+    # print("Getting the sudoku...")
+    # sudoku, answer = get_sudoku()
+    # print("Sudoku: ")
+    # print(sudoku)
+
+    # Solve the sudoku
+    # print("Solving sudoku")
+    # start_time = time.time()
+    # solution = solve_sudoku(sudoku)
+    # end_time = time.time()
+
     # Check the solution
-    print("Solution: ")
-    print(solution)
-    if valid_solution(answer, solution):
-        print("Correct solution")
-    else:
-        print("Incorrect solution")
+    # print("Solution: ")
+    # print(solution)
+    # if valid_solution(answer, solution):
+    #     print("Correct solution")
+    # else:
+    #     print("Incorrect solution")
 
     # Display statistics
     time_taken = end_time - start_time
@@ -156,6 +155,7 @@ def get_sudoku_csp(sudoku):
         assignments=assignments,
         constraints=constraints,
         arc_func=satisfy_arc_constraint,
+        lcv_hfunc=get_sudoku_cv,
     )
 
 
@@ -178,6 +178,20 @@ def satisfy_arc_constraint(xvalue: int, yvalues: Domain):
         if yvalue != xvalue:
             return True
     return False
+
+
+def get_sudoku_cv(dvalue: int, neighbours: Variables, domains: Domains):
+    """
+    Return the constraining value of the `dvalue` based on `ndomains`
+
+    `dvalue` = domain value
+    `ndomains` = neighbour domains
+    """
+    count = 0
+    for nvar in neighbours:
+        if dvalue in domains[nvar]:
+            count += 1
+    return count
 
 
 def valid_solution(answer, solution):
