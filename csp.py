@@ -74,8 +74,14 @@ class CSP:
         if var in self.domains:
             self._domains[var] = self._domains[var].difference(values)
 
-    def consistent_assignment(self, new_assignments: Assignments = {}):
+    def consistent_assignment(
+        self, new_assignments: Assignments = {}, svar: Optional[Variable] = None
+    ):
         for vars, rel in self.constraints:
+            if svar != None:
+                if svar not in vars:
+                    continue
+
             assignments = {}
             for var in vars:
                 if var in new_assignments:
