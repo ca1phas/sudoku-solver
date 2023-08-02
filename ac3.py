@@ -1,18 +1,17 @@
-from typing import TypeVar, Callable
+from typing import TypeVar
 
 from csp import CSP, Variable
 
 T = TypeVar("T")
 Arc = tuple[T, T]
 Arcs = set[Arc]
-ArcFunc = Callable[[T, set[T]], bool]
 
 
-def ac3(csp: CSP, arcs: Arcs, arc_func: ArcFunc):
+def ac3(csp: CSP, arcs: Arcs):
     while arcs:
         x, y = arcs.pop()
 
-        if _revise(csp, x, y, arc_func):
+        if _revise(csp, x, y):
             if len(csp.domains) == 0:
                 return False
             for k in csp.get_neighbours(x) - {y}:
@@ -21,11 +20,14 @@ def ac3(csp: CSP, arcs: Arcs, arc_func: ArcFunc):
     return True
 
 
-def _revise(csp: CSP, x: Variable, y: Variable, arc_func: ArcFunc):
+def _revise(csp: CSP, x: Variable, y: Variable):
+    if not csp.arc_func:
+        raise RuntimeError("Please provide an arc_func to revise arcs")
+
     revised = False
     for xvalue in csp.domains[x].copy():
         yvalues = {csp.assignments[y]} if csp.assignments != None else csp.domains[y]
-        if not arc_func(xvalue, yvalues):
-            csp.remove_domain_value(x, xvalue)
+        if not csp.arc_func(xvalue, yvalues):
+            csp.remove_domain_values(x, {xvalue})
             revised = True
     return revised

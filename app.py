@@ -73,11 +73,7 @@ def solve_sudoku(sudoku):
     csp = get_sudoku_csp(sudoku)
 
     # Maintain arc consistency
-    ac3(
-        csp=csp,
-        arcs=get_suduko_arcs(csp),
-        arc_func=satisfy_arc_constraint,
-    )
+    ac3(csp=csp, arcs=get_suduko_arcs(csp))
 
     # Return solution by backtracking search
     assignments = backtracking_search(csp)
@@ -159,6 +155,7 @@ def get_sudoku_csp(sudoku):
         domains=domains,
         assignments=assignments,
         constraints=constraints,
+        arc_func=satisfy_arc_constraint,
     )
 
 

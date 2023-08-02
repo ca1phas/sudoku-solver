@@ -1,4 +1,4 @@
-from typing import TypeAlias, TypeVar, Callable
+from typing import TypeAlias, TypeVar, Callable, Optional
 
 T = TypeVar("T")
 
@@ -11,6 +11,8 @@ Relation = Callable[[Assignments], bool]
 Constraint = tuple[frozenset[Variable], Relation]
 Constraints = set[Constraint]
 
+ArcFunc = Callable[[T, set[T]], bool]
+
 
 class CSP:
     def __init__(
@@ -19,11 +21,13 @@ class CSP:
         domains: Domains,
         constraints: Constraints,
         assignments: Assignments = {},
+        arc_func: Optional[ArcFunc] = None,
     ):
         self._vars = vars
         self._domains = domains
         self._constraints = constraints
         self._assignments = assignments
+        self._arc_func = arc_func
 
     @property
     def vars(self):
@@ -41,9 +45,17 @@ class CSP:
     def assignments(self):
         return self._assignments
 
-    def remove_domain_value(self, var, value):
+    @property
+    def arc_func(self):
+        return self._arc_func
+
+    def add_domain_values(self, var, values: set):
         if var in self.domains:
-            self._domains[var].remove(value)
+            self._domains[var].union(values)
+
+    def remove_domain_values(self, var, values: set):
+        if var in self.domains:
+            self._domains[var].difference(values)
 
     def consistent_assignment(self, new_assignments: Assignments = {}):
         for vars, rel in self.constraints:
