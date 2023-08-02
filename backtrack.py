@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice
-from csp import CSP, Assignments, Variable, Domains
+from csp import CSP, Assignments, Variable
 from ac3 import ac3, Arcs
 
 
@@ -15,10 +15,20 @@ def _backtrack(csp: CSP, assignments: Assignments):
     var = _select_unassigned_variable(csp, assignments)
 
     for value in _order_domain_values(csp, var, assignments):
-        if csp.consistent_assignment(new_assignments={**assignments, var: value}):
+        if csp.consistent_assignment(
+            new_assignments={**assignments, var: value},
+            svar=var,
+        ):
             assignments[var] = value
-            # inferences = _infer(csp, var, assignments)
-            # if inferences != None:
+            # new_csp = _mac(csp, var, assignments)
+            # if new_csp != None:
+            #     old_csp = csp
+            #     csp = new_csp
+            #     result = _backtrack(csp, assignments)
+            #     if result != None:
+            #         return result
+            #     csp = old_csp
+
             result = _backtrack(csp, assignments)
             if result != None:
                 return result
@@ -81,19 +91,34 @@ def _order_domain_values(csp: CSP, var: Variable, assignments: Assignments):
     return sorted(dvalues.keys(), key=lambda k: dvalues[k])
 
 
-def _infer(csp: CSP, var: Variable, assignments: Assignments):
+def _mac(csp: CSP, var: Variable, assignments: Assignments):
     """
+    Maintain arc consistency
+
     Return the new domains of unassigned variables if there are new inferences
 
     Return `None` if there is no new inference
     """
 
-    old_csp = deepcopy(csp)
     uvars = _get_unassigned_variables(csp, assignments)
     uneighbours = uvars.intersection(csp.get_neighbours(var))
     arcs: Arcs = {(n, var) for n in uneighbours}
 
-    if not ac3(csp, arcs):
-        csp = old_csp
-        return False
-    return True
+    new_domains = {**csp.domains}
+    for uvar in uvars:
+        new_domains[uvar] = deepcopy(csp.domains[uvar])
+    new_csp = CSP(
+        vars=csp.vars,
+        arc_func=csp.arc_func,
+        lcv_hfunc=csp.lcv_hfunc,
+        constraints=csp.constraints,
+        domains=new_domains,
+        assignments={
+            **csp.assignments,
+            **assignments,
+        },
+    )
+
+    if not ac3(new_csp, arcs):
+        return None
+    return new_csp

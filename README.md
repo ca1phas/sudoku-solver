@@ -1,2 +1,6 @@
-1. Without order_domain_values, 1000 sudoku, 53.9 sec
-2. With order_domain_values, 1000 sudoku, 30.6 sec
+# 1000 sudokus, computing 2-consistency
+
+| Description | Time taken(sec) |
+| ----------- | --------------- |
+| Without MAC | 21.5            |
+| With MAC    | 31.9            |

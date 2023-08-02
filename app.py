@@ -15,6 +15,7 @@ def main():
     df = pd.read_csv("./data/sudoku.csv")
     choices = df.values.tolist()
 
+    print("Solving...")
     start_time = time.time()
     for i in range(1000):
         sudoku, answer = choices[i]
@@ -27,19 +28,19 @@ def main():
             raise RuntimeError("Invalid solution")
     end_time = time.time()
 
-    # Get a sudoku
+    # # Get a sudoku
     # print("Getting the sudoku...")
     # sudoku, answer = get_sudoku()
     # print("Sudoku: ")
     # print(sudoku)
 
-    # Solve the sudoku
+    # # Solve the sudoku
     # print("Solving sudoku")
     # start_time = time.time()
     # solution = solve_sudoku(sudoku)
     # end_time = time.time()
 
-    # Check the solution
+    # # Check the solution
     # print("Solution: ")
     # print(solution)
     # if valid_solution(answer, solution):
