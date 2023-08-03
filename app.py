@@ -3,11 +3,13 @@ import random
 import numpy as np
 import pandas as pd
 from math import sqrt
+from statistics import mean
 
 from csp import CSP, Domains, Assignments, Constraints, Domain, Variables
 from ac3 import ac3, Arcs
 from backtrack import backtracking_search
-from inferences import assign_singles
+
+# from inferences import assign_singles
 
 
 SIZE = 9
@@ -18,41 +20,22 @@ def main():
     choices = df.values.tolist()
 
     print("Solving...")
-    start_time = time.time()
-    for i in range(1000):
+    all_time_taken = []
+    for i in range(10000):
         sudoku, answer = choices[i]
 
         # Convert them into an numpy array
         npsudoku = np.array([*sudoku], dtype=np.int8).reshape(SIZE, SIZE)
         npanswer = np.array([*answer], dtype=np.int8).reshape(SIZE, SIZE)
 
-        if not valid_solution(npanswer, solve_sudoku(npsudoku)):
+        start_time = time.time()
+        solution = solve_sudoku(npsudoku)
+        end_time = time.time()
+        all_time_taken.append(end_time - start_time)
+
+        if not valid_solution(npanswer, solution):
             raise RuntimeError("Invalid solution")
-    end_time = time.time()
-
-    # # Get a sudoku
-    # print("Getting the sudoku...")
-    # sudoku, answer = get_sudoku()
-    # print("Sudoku: ")
-    # print(sudoku)
-
-    # # Solve the sudoku
-    # print("Solving sudoku")
-    # start_time = time.time()
-    # solution = solve_sudoku(sudoku)
-    # end_time = time.time()
-
-    # # Check the solution
-    # print("Solution: ")
-    # print(solution)
-    # if valid_solution(answer, solution):
-    #     print("Correct solution")
-    # else:
-    #     print("Incorrect solution")
-
-    # Display statistics
-    time_taken = end_time - start_time
-    print(f"Time take to solve: {time_taken}s")
+    print(f"Average time taken: {mean(all_time_taken)*1000}ms")
 
 
 def get_sudoku():
@@ -206,9 +189,9 @@ def inference(csp: CSP):
         return True
 
     # Assign all variables with hidden single
-    assign_singles(csp, init_domain)
-    if csp.complete_assignment():
-        return True
+    # assign_singles(csp, init_domain)
+    # if csp.complete_assignment():
+    #     return True
 
     return False
 
