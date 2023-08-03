@@ -6,3 +6,4 @@ Dataset: https://www.kaggle.com/datasets/rohanrao/sudoku
 | -------------- | --------------- |
 | Last Digit     | 14              |
 | Assign Singles | 14              |
+| Without numpy  | 9.0             |

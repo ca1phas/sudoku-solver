@@ -1,15 +1,10 @@
 import time
-import random
-import numpy as np
 import pandas as pd
 from math import sqrt
-from statistics import mean
 
 from csp import CSP, Domains, Assignments, Constraints, Domain, Variables
 from ac3 import ac3, Arcs
 from backtrack import backtracking_search
-
-# from inferences import assign_singles
 
 
 SIZE = 9
@@ -20,37 +15,27 @@ def main():
     choices = df.values.tolist()
 
     print("Solving...")
-    all_time_taken = []
-    for i in range(10000):
-        sudoku, answer = choices[i]
+    start = time.time()
+    for i in range(1000):
+        sudoku_str, answer_str = choices[i]
 
-        # Convert them into an numpy array
-        npsudoku = np.array([*sudoku], dtype=np.int8).reshape(SIZE, SIZE)
-        npanswer = np.array([*answer], dtype=np.int8).reshape(SIZE, SIZE)
+        # Convert sudoku into an array
+        sudoku = []
+        answer = []
+        for row in range(SIZE):
+            sudoku_rvalues = []
+            answer_rvalues = []
+            for col in range(SIZE):
+                index = row * SIZE + col
+                sudoku_rvalues.append(int(sudoku_str[index]) or None)
+                answer_rvalues.append(int(answer_str[index]) or None)
+            sudoku.append(sudoku_rvalues)
+            answer.append(answer_rvalues)
 
-        start_time = time.time()
-        solution = solve_sudoku(npsudoku)
-        end_time = time.time()
-        all_time_taken.append(end_time - start_time)
-
-        if not valid_solution(npanswer, solution):
+        solution = solve_sudoku(sudoku)
+        if not valid_solution(answer, solution):
             raise RuntimeError("Invalid solution")
-    print(f"Average time taken: {mean(all_time_taken)*1000}ms")
-
-
-def get_sudoku():
-    # Get a random sudoku and its answer
-    df = pd.read_csv("./data/sudoku.csv")
-    choice = random.choice(df.values.tolist())
-    sudoku = [*choice[0]]
-    answer = [*choice[1]]
-
-    # Convert them into an numpy array
-    sudoku = np.array(sudoku, dtype=np.int8).reshape(SIZE, SIZE)
-    answer = np.array(answer, dtype=np.int8).reshape(SIZE, SIZE)
-
-    # Return the sudoku and the answer
-    return sudoku, answer
+    print(f"Time taken: {time.time() - start}")
 
 
 def solve_sudoku(sudoku):
@@ -93,10 +78,10 @@ def get_sudoku_csp(sudoku):
             vars.add(var)
 
             # Set assignment
-            assignments[var] = sudoku[var] or None
+            assignments[var] = sudoku[row][col] or None
 
             # Set domain
-            domains[var] = set() if sudoku[var] else init_domain()
+            domains[var] = set() if sudoku[row][col] else init_domain()
 
             # Add column constraint
             if row == 0:
@@ -171,7 +156,11 @@ def get_sudoku_cv(dvalue: int, neighbours: Variables, domains: Domains):
 
 
 def valid_solution(answer, solution):
-    return np.array_equal(answer, solution)
+    for row in range(SIZE):
+        for col in range(SIZE):
+            if solution[row][col] != answer[row][col]:
+                return False
+    return True
 
 
 def init_domain():
