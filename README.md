@@ -1,12 +1,10 @@
-# 1000 sudokus, computing 2-consistency
+Dataset: https://www.kaggle.com/datasets/rohanrao/sudoku
 
-1. Without sudoku-specific heuristics
-   | Description | Time taken(sec) |
-   | ----------- | --------------- |
-   | Without MAC | 21.5 |
-   | With MAC | 31.9 |
+## 1000 sudokus, computing 2-consistency
 
-2. With sudoku-specific heuristics
-   | Heuristic | Time taken(sec) |
-   | --- | --- |
-   | Last Digit | 14.4 |
+| Description   | Time taken(sec) |
+| ------------- | --------------- |
+| With MAC      | 32              |
+| Without MAC   | 22              |
+| Last Digit    | 14              |
+| Hidden Single | 14              |

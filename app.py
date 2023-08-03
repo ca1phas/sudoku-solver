@@ -5,8 +5,10 @@ import pandas as pd
 from math import sqrt
 
 from csp import CSP, Domains, Assignments, Constraints, Domain, Variables
-from ac3 import Arcs, ac3
+from ac3 import ac3, Arcs
 from backtrack import backtracking_search
+from inferences import assign_singles
+
 
 SIZE = 9
 
@@ -72,27 +74,17 @@ def solve_sudoku(sudoku):
     # Setup CSP Solver for the sudoku
     csp = get_sudoku_csp(sudoku)
 
-    # Maintain arc consistency
-    ac3(csp=csp, arcs=get_suduko_arcs(csp))
+    # Get solution by inferences
+    if inference(csp):
+        return assignments_to_solution(csp.assignments)
 
-    # Return solution by backtracking search
-    assignments = backtracking_search(csp)
-
-    if assignments == None:
-        return sudoku
-
-    solution = []
-    for row in range(SIZE):
-        rvalues = []
-
-        for col in range(SIZE):
-            var = row, col
-            rvalues.append(
-                assignments[var] if var in assignments else csp.assignments[var]
-            )
-
-        solution.append(rvalues)
-    return solution
+    # Get solution by backtracking search
+    assignments = {}
+    if not csp.complete_assignment():
+        assignments = backtracking_search(csp)
+        if assignments == None:
+            return sudoku
+    return assignments_to_solution(csp.assignments, assignments)
 
 
 def get_sudoku_csp(sudoku):
@@ -121,7 +113,7 @@ def get_sudoku_csp(sudoku):
             assignments[var] = sudoku[var] or None
 
             # Set domain
-            domains[var] = set() if sudoku[var] else {(i + 1) for i in range(SIZE)}
+            domains[var] = set() if sudoku[var] else init_domain()
 
             # Add column constraint
             if row == 0:
@@ -197,6 +189,46 @@ def get_sudoku_cv(dvalue: int, neighbours: Variables, domains: Domains):
 
 def valid_solution(answer, solution):
     return np.array_equal(answer, solution)
+
+
+def init_domain():
+    return {(i + 1) for i in range(SIZE)}
+
+
+def inference(csp: CSP):
+    """
+    Complete assignment by inferences
+    """
+
+    # Maintain arc consistency
+    ac3(csp, get_suduko_arcs(csp))
+    if csp.complete_assignment():
+        return True
+
+    # Assign all variables with hidden single
+    assign_singles(csp, init_domain)
+    if csp.complete_assignment():
+        return True
+
+    return False
+
+
+def assignments_to_solution(
+    assignments: Assignments, new_assignments: Assignments = {}
+):
+    solution = []
+    for row in range(SIZE):
+        rvalues = []
+        for col in range(SIZE):
+            var = row, col
+            if not new_assignments:
+                rvalues.append(assignments[var])
+            else:
+                rvalues.append(
+                    new_assignments[var] if var in new_assignments else assignments[var]
+                )
+        solution.append(rvalues)
+    return solution
 
 
 if __name__ == "__main__":
