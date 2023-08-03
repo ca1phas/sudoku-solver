@@ -11,6 +11,22 @@ SIZE = 9
 
 
 def main():
+    # World hardest sudoku
+    # sudoku = [
+    #     [8, 0, 0, 0, 0, 0, 0, 0, 0],
+    #     [0, 0, 3, 6, 0, 0, 0, 0, 0],
+    #     [0, 7, 0, 0, 9, 0, 2, 0, 0],
+    #     [0, 5, 0, 0, 0, 7, 0, 0, 0],
+    #     [0, 0, 0, 0, 4, 5, 7, 0, 0],
+    #     [0, 0, 0, 1, 0, 0, 0, 3, 0],
+    #     [0, 0, 1, 0, 0, 0, 0, 6, 8],
+    #     [0, 0, 8, 5, 0, 0, 0, 1, 0],
+    #     [0, 9, 0, 0, 0, 0, 4, 0, 0],
+    # ]
+    # print("Solving...")
+    # start = time.time()
+    # print(f"Time taken: {time.time() - start}")
+
     df = pd.read_csv("./data/sudoku.csv")
     choices = df.values.tolist()
 

@@ -1,9 +1,7 @@
-Dataset: https://www.kaggle.com/datasets/rohanrao/sudoku
+Dataset: https://www.kaggle.com/datasets/bryanpark/sudoku
+Hardest sudoku: https://www.telegraph.co.uk/news/science/science-news/9359579/Worlds-hardest-sudoku-can-you-crack-it.html
 
-## 1000 sudokus, computing 2-consistency
-
-| Description    | Time taken(sec) |
-| -------------- | --------------- |
-| Last Digit     | 14              |
-| Assign Singles | 14              |
-| Without numpy  | 9.0             |
+| Description          | Time taken(sec) |
+| -------------------- | --------------- |
+| Dataset, first 1000  | 8.71            |
+| World Hardest sudoku | 192.05          |
