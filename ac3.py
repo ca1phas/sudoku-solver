@@ -15,7 +15,7 @@ def ac3(csp: CSP, arcs: Arcs):
             size = len(csp.domains[x])
             if size == 0:
                 return False
-            # Last digit inference
+            # Last domain value assignment
             if size == 1:
                 csp.assignments[x] = csp.domains[x].pop()
             for k in csp.get_neighbours(x) - {y}:
