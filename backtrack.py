@@ -20,6 +20,8 @@ def _backtrack(csp: CSP, assignments: Assignments):
             svar=var,
         ):
             assignments[var] = value
+
+            # Maintain Arc Consistency
             # new_csp = _mac(csp, var, assignments)
             # if new_csp != None:
             #     old_csp = csp

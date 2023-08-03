@@ -39,8 +39,8 @@ class CSP:
         self._domains = domains
         self._constraints = constraints
         self._assignments = assignments
-        self._arc_func = arc_func
-        self._lcv_hfunc = lcv_hfunc
+        self.arc_func = arc_func
+        self.lcv_hfunc = lcv_hfunc
 
     @property
     def vars(self):
@@ -57,14 +57,6 @@ class CSP:
     @property
     def assignments(self):
         return self._assignments
-
-    @property
-    def arc_func(self):
-        return self._arc_func
-
-    @property
-    def lcv_hfunc(self):
-        return self._lcv_hfunc
 
     def add_domain_values(self, var, values: set):
         if var in self.domains:
