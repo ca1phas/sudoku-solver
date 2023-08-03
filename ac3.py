@@ -12,8 +12,12 @@ def ac3(csp: CSP, arcs: Arcs):
         x, y = arcs.pop()
 
         if _revise(csp, x, y):
-            if len(csp.domains) == 0:
+            size = len(csp.domains[x])
+            if size == 0:
                 return False
+            # Last digit inference
+            if size == 1:
+                csp.assignments[x] = csp.domains[x].pop()
             for k in csp.get_neighbours(x) - {y}:
                 arcs.add((k, x))
 
