@@ -1,6 +1,6 @@
 This branch is my original solution
 
-Check out branch py-sudoku for the improved solution with the help of https://github.com/jeffsieu/py-sudoku
+Check out branch py-sudoku for the improved solution:
 https://github.com/ca1phas/sudoku-solver/tree/py-sudoku
 
 Dataset: https://www.kaggle.com/datasets/bryanpark/sudoku
