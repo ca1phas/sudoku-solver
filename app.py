@@ -11,6 +11,7 @@ SAMPLE_SIZE = 1000
 def main():
     solve_world_hardest()
     solve_sudokus(SAMPLE_SIZE)
+    print("Code available on https://github.com/ca1phas/sudoku-solver")
 
 
 def solve_world_hardest():
