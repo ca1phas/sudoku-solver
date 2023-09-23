@@ -1,12 +1,10 @@
-This branch is my original solution
-
-Check out branch py-sudoku for the improved solution with the help of https://github.com/jeffsieu/py-sudoku
+Work done on this branch is with reference to https://github.com/jeffsieu/py-sudoku
 
 Dataset: https://www.kaggle.com/datasets/bryanpark/sudoku
 
 Hardest sudoku: https://www.telegraph.co.uk/news/science/science-news/9359579/Worlds-hardest-sudoku-can-you-crack-it.html
 
-| Description          | Time taken(sec) |
-| -------------------- | --------------- |
-| Dataset, first 1000  | 8.71            |
-| World Hardest sudoku | 192.05          |
+| Description          | Time taken(sec) | (original) Time taken(sec) |
+| -------------------- | --------------- | -------------------------- |
+| Dataset, first 1000  | 1.71            | 8.71                       |
+| World Hardest sudoku | 0.41            | 192.05                     |
